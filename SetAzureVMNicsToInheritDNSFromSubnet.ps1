@@ -1,4 +1,11 @@
 
+#If not logged in to Azure, start login...
+if ($Null -eq (Get-AzContext).Account) {
+    $AzureEnv = Get-AzEnvironment | Select-Object -Property Name  | 
+    Out-GridView -Title "Choose your Azure environment.  NOTE: For Azure Commercial choose AzureCloud" -OutputMode Single
+    Connect-AzAccount -Environment $AzureEnv.Name }
+
+
 Write-Host "Import CSV..." -ForegroundColor Cyan
 
 Function Get-FileNameDialog {
@@ -16,12 +23,15 @@ Function Get-FileNameDialog {
     Else {$OpenFileDialog.filter = "CSV files (*.csv)| *.csv| Text files (*.txt)| *.txt| All files (*.*)| *.*"}
     $OpenFileDialog.ShowDialog() | Out-Null
     $File = $OpenFileDialog.filename
-    Return $FileBrea
+    Return $File
 }
+
 cls
 Write-Host "Select CSV Input File Explorer PopUp to continue..." -ForegroundColor Yellow
 Write-Host "NOTE: it could be behind the current window!" -ForegroundColor Yellow
 $CSVPath = Get-FileNameDialog -FileType "CSV" -InitialDirectory "$((Get-ItemProperty .).FullName)\CsvFiltered"
+
+If (!$CSVPath) {Write-Host "No Input CSV File!" -ForegroundColor Red ; Break}
 
 $Nics = Import-Csv -path $CSVPath
 
